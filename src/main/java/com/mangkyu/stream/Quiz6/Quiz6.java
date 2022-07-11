@@ -1,8 +1,9 @@
 package com.mangkyu.stream.Quiz6;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class Quiz6 {
 
@@ -13,12 +14,20 @@ public class Quiz6 {
     }
 
     public Map<Boolean, List<Student>> quiz1() {
-        return new HashMap<>();
-    }
+    	
+    	return Arrays.stream(stuArr)
+    		.filter(t -> t.getScore() < 150)
+    		.collect(Collectors.groupingBy(Student::isMale));
+    } // quiz1
 
     public Map<Integer, Map<Integer, Integer>> quiz2() {
-        return new HashMap<>();
-    }
+        
+    	return Arrays.stream(stuArr)
+        	.collect(Collectors.groupingBy(Student::getHak, 
+        			Collectors.groupingBy(
+        					Student::getBan, 
+        					Collectors.summingInt(Student::getScore))));
+    } // quiz2
 
     private void init() {
         stuArr = new Student[]{
@@ -42,6 +51,6 @@ public class Quiz6 {
                 new Student("이자바", true, 2, 3, 200)
         };
 
-    }
+    } // init
 
-}
+} // end class
