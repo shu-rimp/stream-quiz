@@ -11,7 +11,8 @@ MangKyu님이 제작한 문제입니다. [이용방법](source/originalRM.MD)
 <br>
 
 ## 문제1
-[top](#top)
+[목차로 이동](#stream-quiz)
+
 
 아래와 같은 User.csv가 있다고 할 때, 아래의 CSV 데이터를 조회하여 아래와 같은 결과를 출력한다고 하자.
 ```text
@@ -25,30 +26,94 @@ MangKyu님이 제작한 문제입니다. [이용방법](source/originalRM.MD)
 정프로, 개발:축구:농구, 개발도 좋고 운동도 좋아
 ```
 
-### 문제 1.1
+[전체풀이 소스코드](src/main/java/com/mangkyu/stream/Quiz1/Quiz1.java)
+
+### 문제 1.1 풀이
 위와 같은 데이터를 조회하여 각 취미를 선호하는 인원이 몇 명인지 계산하여라.
 
-### 문제 1.2
+```java
+public Map<String, Integer> quiz1() throws Exception {
+    List<String[]> user = readCsvLines();
+
+    return user.stream()
+            .map(t -> t[1].replace(" ", ""))
+            .flatMap(hobbies -> Arrays.stream(hobbies.split(":")))
+            // toMap(KeyMapper, ValueMapper, mergeFunction)
+            .collect(Collectors.toMap(key -> key, val -> 1, (oldVal, newVal) -> newVal += oldVal));        
+} // quiz1
+```
+
+```text
+두번째 열에 취미 데이터가 있으므로 1번째 인덱스로 맵핑한다.
+맨 앞에 공백이 있으므로 replace()를 사용해 공백을 제거한다.
+취미가 :를 기준으로 여러개 나열되어있으므로, String클래스의 split메소드를 사용해 콜론을 기준으로 구분하고,
+flatMap으로 차원을 낮춰준다.
+마지막으로 Collectors의 toMap함수를 사용해 맵객체로 만들어 리턴한다.
+
+toMap함수의 매개변수로는 KeyMapper, ValueMapper, mergeFunction을 가지는데,
+키와 값을 각각 매핑할 수 있고, 마지막 mergeFunction을 사용해 동일한 키를 가지는 값에 대해 어떤 처리를 할 것인지를
+명시할 수 있다.
+
+초기 value값을 1로 지정하고 해당 키에 새로운 값이 들어왔을 때, 
+기존 값에 더한 값으로 지정해주면 취미를 선호하는 인원 수를 구할 수 있다.
+```
+
+### 문제 1.2 풀이
 위와 같은 데이터를 조회하여 각 취미를 선호하는 정씨 성을 갖는 인원이 몇 명인지 계산하여라.
 
-### 문제 1.3
+```java
+public Map<String, Integer> quiz2() throws Exception {
+    List<String[]> user = readCsvLines();
+
+    return user.stream()
+            .filter(name -> name[0].substring(0, 1).equals("정"))
+//        		.filter(name -> name[0].startsWith("정")) 예시답안
+            .map(t -> t[1].replace(" ", ""))
+            .flatMap(hobbies -> Arrays.stream(hobbies.split(":")))
+            .collect(Collectors.toMap(key -> key, val -> 1, (oldVal, newVal) -> ++newVal));
+} // quiz2
+```
+
+```text
+첫번째 열에 이름 데이터가 있으므로 0번째 인덱스로 찾는다.
+정씨성을 가진 인원을 먼저 거른 후 인원 수를 계산하는게 효율적이므로, 먼저 filter()를 사용한다.
+substring으로 첫번째 글자만 자른 후 그 값이 "정"이라면 거르는 조건으로 작성했는데,
+제시된 답안에서는 startsWith()를 사용했다.
+
+필터로 거른 후에는 문제 1.1과 동일하게 취미를 분리해서 매핑한 후 toMap()함수로 인원 수를 세면 된다.
+```
+
+### 문제 1.3 풀이
 위와 같은 데이터를 조회하여 소개 내용에 '좋아'가 몇번 등장하는지 계산하여라.
 
-<br>
+```java
+public int quiz3() throws Exception {
+    List<String[]> user = readCsvLines();
 
-## 문제1 풀이
-[전체 소스코드](src/main/java/com/mangkyu/stream/Quiz1/Quiz1.java)
+    return user.stream()
+            .map(line -> countLike(line[2], "좋아", 0))
+            .reduce(0, Integer::sum);
+} // quiz3
+```
 
-### 문제 1.1
+```text
+처음에는 단순히 필터에 contains()를 사용해 "좋아"가 있는 데이터만 걸러서 카운트했는데,
+다시보니 한 라인에 "좋아"가 여러번 있는 경우가 있어서 오답이었다.
 
-### 문제 1.2
+"좋아"가 등장한 횟수를 세서 정수값으로 매핑한 후 reduce()를 사용해 더해야한다.
 
-### 문제 1.3
+제시된 답안에서는 "좋아"가 등장한 횟수를 계산하는 방법으로 countLike메소드를 따로 구현한 후 사용했다.
+매개변수로 전체 문자열, 찾을 문자열, 인덱스값을 넣어준 후 indexOf()를 사용해서 그 값이 1 이상이면(해당 문자열이 있으면)
+기존 인덱스 + 해당문자열의 길이를 다시 매개변수로 넣어 재귀호출한다.
+
+이렇게 하면 등장한 횟수를 리턴받을 수 있다.
+해당 메소드의 리턴값으로 데이터를 매핑한다음, reduce()를 이용해 전체 데이터를 더하면 된다.
+```
 
 <br>
 
 ## 문제2
-[top](#top)
+[목차로 이동](#stream-quiz)
 
 아래와 같은 데이터가 저장된 리스트가 있다고 하자.
 ```java
@@ -77,7 +142,7 @@ ex) ["Hello", "a", "Island", "b"] -> “HI”
 <br>
 
 ## 문제3
-[top](#top)
+[목차로 이동](#stream-quiz)
 
 ```java
 private static final List<Integer> numbers1 = Arrays.asList(1, 2, 3);
@@ -108,7 +173,7 @@ ex) numbers1 = [1,2,3], numbers2 =  [3,4] -> 12
 <br>
 
 ## 문제4
-[top](#top)
+[목차로 이동](#stream-quiz)
 
 아래와 같은 데이터를 갖는 거래자와 거래 내역 클래스가 있다고 하자.
 (생성자 및 Getter, Setter 등은 생략)
@@ -205,7 +270,7 @@ public void init() {
 <br>
 
 ## 문제5
-[top](#top)
+[목차로 이동](#stream-quiz)
 
 ### 문제 5.1
 문자열 배열 String[] strArr = {"aaa","bb","c","dddd"}의 모든 문자열의 길이를 더한 결과를 출력하여라.
@@ -242,7 +307,7 @@ public void init() {
 
 
 ## 문제6
-[top](#top)
+[목차로 이동](#stream-quiz)
 
 아래와 같은 학생 클래스가 있다고 하자.
 (생성자 및 Getter 등은 생략)
